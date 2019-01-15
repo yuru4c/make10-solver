@@ -90,9 +90,9 @@ var Expr = (function () {
 	prototype.getOp = function (index) {
 		return this.ops & 1 << this.vars.length - index - 1;
 	};
-	prototype.setOp = function (index, opr) {
+	prototype.setOp = function (index, op) {
 		var mask = 1 << this.vars.length - index - 1;
-		if (opr) {
+		if (op) {
 			this.ops |= mask;
 		} else {
 			this.ops &= ~mask;
@@ -138,18 +138,18 @@ var Expr = (function () {
 		return value;
 	};
 	
-	prototype.strAt = function (i, nums, j) {
-		var op;
+	prototype.strAt = function (i, op, nums) {
+		var str;
 		if (this.getOp(i)) {
-			op = this.prd ? '÷' : '-';
-		} else if (j) {
-			op = this.prd ? '×' : '+';
+			str = this.prd ? '÷' : '-';
+		} else if (op) {
+			str = this.prd ? '×' : '+';
 		} else {
-			op = '';
+			str = '';
 		}
 		var v = this.vars[i];
 		var s = v.toString(nums);
-		return op + (v.prd == false ? '(' + s + ')' : s);
+		return str + (v.prd == false ? '(' + s + ')' : s);
 	};
 	
 	prototype.toString = function (nums) {
@@ -168,10 +168,10 @@ var Expr = (function () {
 			}
 		}
 		var f = i == this.vars.length ? 0 : i;
-		var str = this.strAt(f, nums);
+		var str = this.strAt(f, false, nums);
 		for (i = 0; i < this.vars.length; i++) {
 			if (i == f) continue;
-			str += this.strAt(i, nums, i || f);
+			str += this.strAt(i, true, nums);
 		}
 		return str;
 	};
@@ -208,7 +208,7 @@ var exprs = (function () {
 		}
 	}
 	
-	function iterate(n, r, sets, p, s) {
+	function iterate(n, r, m, s, sets) {
 		if (s == r) {
 			switch (sets) {
 				case Prd: ops(Sum[n], false, 1 << r - 1);
@@ -218,51 +218,52 @@ var exprs = (function () {
 			}
 			return;
 		}
-		var exprs = sets[index[s]];
+		var l = index[s];
+		var exprs = sets[l];
 		for (var i = 0; i < exprs.length; i++) {
-			stack[s] = exprs[i].assign(perms, p);
-			iterate(n, r, sets, p + index[s], s + 1);
+			stack[s] = exprs[i].assign(perms, m);
+			iterate(n, r, m + l, s + 1, sets);
 		}
 	}
 	
 	function assign(n, r) {
-		iterate(n, r, Prd, 0, 0);
-		iterate(n, r, Sum, 0, 0);
+		iterate(n, r, 0, 0, Prd);
+		iterate(n, r, 0, 0, Sum);
 	}
 	
-	function combl(n, r, id, prev, p0, p1, li, gi) {
-		if (li == index[gi]) {
-			combg(n, r, id, p0, p1, gi + 1);
+	function combl(n, r, m, s, min, l, t, j) {
+		if (l == index[s]) {
+			if (t >= min) {
+				combg(n, r, m, s + 1, t);
+			}
 			return;
 		}
-		for (var i = prev + 1; i < n; i++) {
+		for (var i = j; i < n; i++) {
 			if (used[i]) continue;
 			used[i] = true;
-			perms[id] = i;
-			combl(n, r, id + 1, i, p0 * n + i, p1, li + 1, gi);
+			perms[m] = i;
+			combl(n, r, m + 1, s, min, l + 1, t * n + i, i + 1);
 			used[i] = false;
 		}
 	}
-	function combg(n, r, id, p0, p1, gi) {
-		if (p0 < p1) return;
-		if (gi == r) {
+	function combg(n, r, m, s, min) {
+		if (s == r) {
 			assign(n, r);
 			return;
 		}
-		if (gi != 0 && index[gi] != index[gi - 1]) {
-			p0 = 0;
+		if (s != 0 && index[s] != index[s - 1]) {
+			min = 0;
 		}
-		combl(n, r, id, -1, 0, p0, 0, gi);
+		combl(n, r, m, s, min, 0, 0, 0);
 	}
 	
 	function group(n, r, m, s) {
 		if (s == 0) {
 			index[s] = m;
-			combg(n, r, 0, 0, 0, 0);
+			combg(n, r, 0, 0, 0);
 			return;
 		}
-		var min = ~~((m + s) / (s + 1));
-		var max = m - s;
+		var min = ~~((m + s) / (s + 1)), max = m - s;
 		if (s + 1 < r && max > index[s + 1]) {
 			max = index[s + 1];
 		}

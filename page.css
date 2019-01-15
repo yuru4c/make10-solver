@@ -13,6 +13,7 @@ input {
 }
 table {
 	font-family: sans-serif;
+	white-space: nowrap;
 }
 
 .center {
@@ -33,10 +34,9 @@ table {
 	width: 100%;
 }
 
-.eq {
-	color: darkgray;
-}
-
 .disabled {
 	color: gray;
+}
+.eq {
+	color: darkgray;
 }

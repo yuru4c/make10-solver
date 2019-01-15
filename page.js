@@ -26,12 +26,12 @@
 		function calc() {
 			var ans = [];
 			for (var i = 0; i < set.length; i++) {
-				var e = set[i];
+				var expr = set[i];
 				try {
-					if (e.calc(rs).equals(r)) {
-						ans.push(e);
+					if (expr.calc(rs).equals(r)) {
+						ans.push(expr);
 					}
-				} catch (_) { }
+				} catch (e) { }
 			}
 			onsolve(ans);
 		}
@@ -122,12 +122,12 @@
 		
 		inputs.onsubmit = function () {
 			try {
-				num = valueOf(make);
 				for (var i = 0; i < l; i++) {
 					nums[i] = valueOf(uses[i]);
 				}
+				num = valueOf(make);
 			} catch (e) {
-				window.alert(e.message || e);
+				window.alert(e.message);
 				return false;
 			}
 			
