@@ -1,0 +1,42 @@
+
+html {
+	-webkit-text-size-adjust: none;
+	   -moz-text-size-adjust: none;
+	    -ms-text-size-adjust: none;
+}
+
+label {
+	display: inline-block;
+}
+input {
+	font-size: 1em;
+}
+table {
+	font-family: sans-serif;
+}
+
+.center {
+	text-align: center;
+}
+.item {
+	display: inline-block;
+	text-align: left;
+}
+
+.block {
+	display: block;
+}
+.right {
+	text-align: right;
+}
+.wide {
+	width: 100%;
+}
+
+.eq {
+	color: darkgray;
+}
+
+.disabled {
+	color: gray;
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja-JP">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<title>テンパズル解答器</title>
+	
+	<link rel="stylesheet" href="page.css">
+</head>
+<body class="center">
+	<div class="item">
+		<br>
+		<form name="inputs">
+			<fieldset id="fieldset">
+				<legend>テンパズル解答器</legend>
+				<p id="p">
+					<label>変数の数: </label>
+					<label><input type="radio" name="l" value="2">2</label>
+					<label><input type="radio" name="l" value="3">3</label>
+					<label><input type="radio" name="l" value="4" checked>4</label>
+					<label><input type="radio" name="l" value="5">5</label>
+					<label><input type="radio" name="l" value="6">6</label>
+				</p>
+				<p>
+					<label>使う数: </label>
+					<input class="right" size="2" name="use" placeholder="a">
+					<input class="right" size="2" name="use" placeholder="b">
+					<input class="right" size="2" name="use" placeholder="c">
+					<input class="right" size="2" name="use" placeholder="d">
+					<input class="right" size="2" name="use" placeholder="e">
+					<input class="right" size="2" name="use" placeholder="f">
+				</p>
+				<p>
+					<label class="block">
+						作る数:
+						<input class="right" size="4" value="10" id="make">
+					</label>
+				</p>
+				<div>
+					<input type="submit" class="wide" value="実行" id="exec">
+				</div>
+			</fieldset>
+		</form>
+		<div id="results">
+			<p>結果: <span id="count">0<!> 通り</span></p>
+			<table id="list"></table>
+			<hr>
+		</div>
+		<br>
+	</div>
+	
+	<script type="text/javascript" src="core.js"></script>
+	<script type="text/javascript" src="page.js"></script>
+</body>
+</html>
