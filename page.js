@@ -6,26 +6,33 @@
 	var parseInt = this.parseInt;
 	var isNaN = this.isNaN;
 	
-	var num, l;
+	var chunk = 4096;
+	
+	var num, length;
 	var nums = [];
 	
 	function solve(onprepare, onsolve) {
+		var i;
 		var r = new Rational(num);
 		var rs = [];
-		for (var i = 0; i < l; i++) {
+		for (i = 0; i < length; i++) {
 			rs[i] = new Rational(nums[i]);
 		}
+		
+		i = 0;
 		var set;
+		var sl, j = 0, c = 0;
+		var id;
 		
 		window.setTimeout(function () {
-			set = exprs(l);
+			set = exprs(length);
+			sl = set.length;
+			id = window.setInterval(calc, 1);
 			onprepare();
-			
-			window.setTimeout(calc);
 		});
 		function calc() {
 			var ans = [];
-			for (var i = 0; i < set.length; i++) {
+			for (; i < j && i < sl; i++) {
 				var expr = set[i];
 				try {
 					if (expr.calc(rs).equals(r)) {
@@ -33,7 +40,12 @@
 					}
 				} catch (e) { }
 			}
-			onsolve(ans);
+			j += chunk;
+			c += ans.length;
+			
+			var end = i == sl;
+			if (end) window.clearInterval(id);
+			onsolve(ans, c, i, sl, end);
 		}
 	}
 	
@@ -89,7 +101,7 @@
 			for (var i = 0; i < ls.length; i++) {
 				uses[i + fl].disabled = flag;
 				if (ls[i].checked) {
-					l = i + fl + 1;
+					length = i + fl + 1;
 					flag = true;
 				}
 			}
@@ -102,27 +114,29 @@
 		make.onfocus = onfocus;
 		
 		function onprepare() {
-			exec.value = '計算中...';
-		}
-		function onsolve(ans) {
-			count.data = ans.length;
-			
 			var table = $.createElement('table');
-			for (var i = 0; i < ans.length; i++) {
-				write(table.insertRow(i), ans[i]);
-			}
 			div.replaceChild(table, list);
 			list = table;
-			
-			fieldset.disabled = false;
-			fieldset.className = '';
-			exec.value = '実行';
-			div.className = '';
+		}
+		function onsolve(ans, c, j, sl, end) {
+			count.data = c;
+			for (var i = 0; i < ans.length; i++) {
+				write(list.insertRow(-1), ans[i]);
+			}
+			if (end) {
+				fieldset.disabled = false;
+				fieldset.className = '';
+				exec.disabled = false;
+				exec.value = '実行';
+				div.className = '';
+			} else {
+				exec.value = '計算中 (' + j + ' / ' + sl + ')';
+			}
 		}
 		
 		inputs.onsubmit = function () {
 			try {
-				for (var i = 0; i < l; i++) {
+				for (var i = 0; i < length; i++) {
 					nums[i] = valueOf(uses[i]);
 				}
 				num = valueOf(make);
@@ -133,6 +147,7 @@
 			
 			fieldset.disabled = true;
 			fieldset.className = 'disabled';
+			exec.disabled = true;
 			exec.value = '生成中...';
 			div.className = 'disabled';
 			
