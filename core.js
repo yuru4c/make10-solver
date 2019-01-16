@@ -2,9 +2,12 @@
 var Rational = (function () {
 	
 	function Rational(n, d) {
-		if (!(1 in arguments)) d = 1;
-		if (d == 0) {
-			throw new Error();
+		if (1 in arguments) {
+			if (d == 0) {
+				throw new Error();
+			}
+		} else {
+			d = 1;
 		}
 		
 		var divisor = gcd(n, d);
@@ -161,15 +164,15 @@ var Expr = (function () {
 			var n = nums[v];
 			return n < 0 ? '(' + n + ')' : n.toString();
 		}
-		var i = 0;
+		var i = 0, l = this.vars.length;
 		if (this.getOp(0)) {
-			for (i = 1; i < this.vars.length; i++) {
+			for (i = 1; i < l; i++) {
 				if (!this.getOp(i)) break;
 			}
 		}
-		var f = i == this.vars.length ? 0 : i;
+		var f = i == l ? 0 : i;
 		var str = this.strAt(f, false, nums);
-		for (i = 0; i < this.vars.length; i++) {
+		for (i = 0; i < l; i++) {
 			if (i == f) continue;
 			str += this.strAt(i, true, nums);
 		}
