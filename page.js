@@ -21,7 +21,8 @@
 		
 		i = 0;
 		var set;
-		var sl, j = 0, c = 0;
+		var sl, j = 0;
+		var all = [];
 		var id;
 		
 		window.setTimeout(function () {
@@ -32,20 +33,28 @@
 		});
 		function calc() {
 			var ans = [];
-			for (; i < j && i < sl; i++) {
+			i: for (; i < j && i < sl; i++) {
 				var expr = set[i];
+				var eq;
 				try {
-					if (expr.calc(rs).equals(r)) {
-						ans.push(expr);
+					eq = expr.calc(rs).equals(r);
+				} catch (e) {
+					continue;
+				}
+				if (eq) {
+					for (var k = 0; k < all.length; k++) {
+						if (expr.equals(all[k], nums)) {
+							continue i;
+						}
 					}
-				} catch (e) { }
+					all.push(expr);
+					ans.push(expr);
+				}
 			}
 			j += chunk;
-			c += ans.length;
-			
 			var end = i == sl;
 			if (end) window.clearInterval(id);
-			onsolve(ans, c, i, sl, end);
+			onsolve(ans, all.length, i, sl, end);
 		}
 	}
 	
@@ -66,15 +75,16 @@
 		return value;
 	}
 	
+	var chars = [], strs = [];
 	function insert(row, str) {
 		var cell = row.insertCell(-1);
 		cell.appendChild($.createTextNode(str));
 		return cell;
 	}
 	function write(row, e) {
-		insert(row, e.toString());
+		insert(row, e.toString(chars));
 		insert(row, '=').className = 'eq';
-		insert(row, e.toString(nums));
+		insert(row, e.toString(strs));
 		insert(row, '=').className = 'eq';
 		insert(row, num.toString());
 	}
@@ -114,6 +124,16 @@
 		make.onfocus = onfocus;
 		
 		function onprepare() {
+			var o = {};
+			for (var i = 0; i < length; i++) {
+				var n = nums[i];
+				strs[i] = n < 0 ? '(' + n + ')' : n.toString();
+				if (n in o) {
+					chars[i] = o[n];
+				} else {
+					o[n] = chars[i] = (i + 10).toString(36);
+				}
+			}
 			var table = $.createElement('table');
 			div.replaceChild(table, list);
 			list = table;

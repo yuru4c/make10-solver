@@ -141,6 +141,43 @@ var Expr = (function () {
 		return value;
 	};
 	
+	prototype.equals = function (expr, nums) {
+		if (expr == null || this.prd != expr.prd) return false;
+		if (this.prd == null) {
+			return nums[this.vars[0]] == nums[expr.vars[0]];
+		}
+		var l = this.vars.length, m = expr.vars.length;
+		if (l != m) return false;
+		
+		var seen = [];
+		var negative = false;
+		i: for (var i = 0; i < l; i++) {
+			var o = !this.getOp(i);
+			var v = this.vars[i];
+			for (var j = 0; j < m; j++) {
+				if (seen[j]) continue;
+				var p = !expr.getOp(j);
+				var w = expr.vars[j];
+				var eq;
+				if (o == p) {
+					eq = v.equals(w, nums);
+					if (this.prd && !eq) {
+						eq = v.equals(w.negative(), nums);
+						if (eq) negative = !negative;
+					}
+				} else {
+					eq = !this.prd && v.equals(w.negative(), nums);
+				}
+				if (eq) {
+					seen[j] = true;
+					continue i;
+				}
+			}
+			return false;
+		}
+		return !negative;
+	};
+	
 	prototype.strAt = function (i, op, nums) {
 		var str;
 		if (this.getOp(i)) {
@@ -155,14 +192,13 @@ var Expr = (function () {
 		return str + (v.prd == false ? '(' + s + ')' : s);
 	};
 	
-	prototype.toString = function (nums) {
+	prototype.toString = function (strs) {
 		if (this.prd == null) {
 			var v = this.vars[0];
-			if (!nums) {
+			/* if (!strs) {
 				return (v + 10).toString(36);
-			}
-			var n = nums[v];
-			return n < 0 ? '(' + n + ')' : n.toString();
+			} */
+			return strs[v];
 		}
 		var i = 0, l = this.vars.length;
 		if (this.getOp(0)) {
@@ -171,10 +207,10 @@ var Expr = (function () {
 			}
 		}
 		var f = i == l ? 0 : i;
-		var str = this.strAt(f, false, nums);
+		var str = this.strAt(f, false, strs);
 		for (i = 0; i < l; i++) {
 			if (i == f) continue;
-			str += this.strAt(i, true, nums);
+			str += this.strAt(i, true, strs);
 		}
 		return str;
 	};
