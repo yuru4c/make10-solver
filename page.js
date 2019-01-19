@@ -129,10 +129,10 @@
 			try {
 				i: for (var i = 0; i < length; i++) {
 					var v = uses[i].value;
-					var ｒ = Rational.valueOf(v);
-					nums[i] = ｒ;
+					var r = Rational.valueOf(v);
+					nums[i] = r;
 					for (var j = 0; j < i; j++) {
-						if (ｒ.equals(nums[j])) {
+						if (r.equals(nums[j])) {
 							perms[i] = perms[j];
 							chars[i] = chars[j];
 							strs[i] = strs[j];
@@ -141,10 +141,11 @@
 					}
 					perms[i] = i;
 					chars[i] = (i + 10).toString(36);
-					strs[i] = v.charAt(0) == '-' ? '(' + v + ')' : v;
+					var s = r.toString();
+					strs[i] = r < 0 ? '(' + s + ')' : s;
 				}
-				str = make.value;
-				num = Rational.valueOf(str);
+				num = Rational.valueOf(make.value);
+				str = num.toString();
 			} catch (e) {
 				window.alert('入力が不正です');
 				return false;

@@ -26,11 +26,13 @@ var Rational = (function () {
 		}
 		s = str.split('.');
 		if (s.length == 2) {
-			var l = parse('1' + s[1]);
-			if (l != 1) {
-				return new Rational(
+			var f = parse('1' + s[1]);
+			if (f != 1) {
+				var r = new Rational(
 					parse(s[0] + s[1]),
-					Math.pow(10, Math.floor(Math.log(l) / Math.LN10)));
+					Math.pow(10, Math.floor(Math.log(f) / Math.LN10)));
+				r.decimal = true;
+				return r;
 			}
 		}
 		return new Rational(parse(str));
@@ -49,6 +51,8 @@ var Rational = (function () {
 		return value;
 	}
 	
+	prototype.decimal = false;
+	
 	prototype.negative = function () {
 		return new Rational(-this.n, this.d);
 	};
@@ -59,8 +63,7 @@ var Rational = (function () {
 	prototype.plus = function (rational) {
 		return new Rational(
 			this.n * rational.d + rational.n * this.d,
-			this.d * rational.d
-		);
+			this.d * rational.d);
 	};
 	prototype.minus = function (rational) {
 		return this.plus(rational.negative());
@@ -69,8 +72,7 @@ var Rational = (function () {
 	prototype.multiply = function (rational) {
 		return new Rational(
 			this.n * rational.n,
-			this.d * rational.d
-		);
+			this.d * rational.d);
 	};
 	prototype.divide = function (rational) {
 		return this.multiply(rational.inverse());
@@ -79,6 +81,22 @@ var Rational = (function () {
 	prototype.equals = function (rational) {
 		return this.n == rational.n && this.d == rational.d ||
 			-this.n == rational.n && -this.d == rational.d;
+	};
+	
+	prototype.valueOf = function () {
+		return this.n / this.d;
+	};
+	
+	prototype.toString = function () {
+		if (this.decimal) {
+			return (+this).toString();
+		}
+		var n = this.n, d = this.d;
+		if (d < 0) {
+			n = -n;
+			d = -d;
+		}
+		return d == 1 ? n.toString() : n + '/' + d;
 	};
 	
 	return Rational;
