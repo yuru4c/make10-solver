@@ -8,11 +8,9 @@
 	var perms = [];
 	
 	function solve(onprepare, onsolve) {
-		var all = [];
-		var set;
+		var all = [], set;
 		var i = 0, j = 0, sl;
 		var id;
-		
 		window.setTimeout(function () {
 			set = exprs(length);
 			sl = set.length;
@@ -39,9 +37,9 @@
 					ans.push(expr);
 				}
 			}
-			j += chunk;
 			var end = i == sl;
 			if (end) window.clearInterval(id);
+			else j += chunk;
 			onsolve(ans, all.length, i, sl, end);
 		}
 	}
@@ -126,10 +124,10 @@
 		}
 		
 		inputs.onsubmit = function () {
+			var i;
 			try {
-				i: for (var i = 0; i < length; i++) {
-					var v = uses[i].value;
-					var r = Rational.valueOf(v);
+				i: for (i = 0; i < length; i++) {
+					var r = Rational.valueOf(uses[i].value);
 					nums[i] = r;
 					for (var j = 0; j < i; j++) {
 						if (r.equals(nums[j])) {
@@ -141,8 +139,7 @@
 					}
 					perms[i] = i;
 					chars[i] = (i + 10).toString(36);
-					var s = r.toString();
-					strs[i] = r < 0 ? '(' + s + ')' : s;
+					strs[i] = r.toString();
 				}
 				num = Rational.valueOf(make.value);
 				str = num.toString();
@@ -150,6 +147,14 @@
 				window.alert('入力が不正です');
 				return false;
 			}
+			
+			for (i = 0; i < length; i++) {
+				uses[i].value = strs[i];
+				if (nums[i] < 0) {
+					strs[i] = '(' + strs[i] + ')';
+				}
+			}
+			make.value = str;
 			
 			fieldset.disabled = true;
 			fieldset.className = 'disabled';
