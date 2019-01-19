@@ -26,14 +26,11 @@ var Rational = (function () {
 		}
 		s = str.split('.');
 		if (s.length == 2) {
-			var f = parse('1' + s[1]);
-			if (f != 1) {
-				var r = new Rational(
-					parse(s[0] + s[1]),
-					Math.pow(10, Math.floor(Math.log(f) / Math.LN10)));
-				r.decimal = true;
-				return r;
-			}
+			var f = parse('1' + s[1]) / 10, d = 1;
+			while (d <= f) d *= 10;
+			var r = new Rational(parse(s[0] + s[1]), d);
+			r.decimal = true;
+			return r;
 		}
 		return new Rational(parse(str));
 	};
