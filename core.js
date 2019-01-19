@@ -42,7 +42,11 @@ var Rational = (function () {
 	}
 	
 	function parse(str) {
-		return parseInt(str, 10);
+		var value = parseInt(str, 10);
+		if (isNaN(value)) {
+			throw new Error();
+		}
+		return value;
 	}
 	
 	prototype.negative = function () {
