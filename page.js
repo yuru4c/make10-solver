@@ -1,28 +1,16 @@
 
 (function (window, $) {
 	
-	var Error = this.Error;
-	
-	var parseInt = this.parseInt;
-	var isNaN = this.isNaN;
-	
 	var chunk = 4096;
 	
 	var num, length;
 	var nums = [];
+	var perms = [];
 	
 	function solve(onprepare, onsolve) {
-		var i;
-		var r = new Rational(num);
-		var rs = [];
-		for (i = 0; i < length; i++) {
-			rs[i] = new Rational(nums[i]);
-		}
-		
-		i = 0;
-		var set;
-		var sl, j = 0;
 		var all = [];
+		var set;
+		var i = 0, j = 0, sl;
 		var id;
 		
 		window.setTimeout(function () {
@@ -37,13 +25,13 @@
 				var expr = set[i];
 				var eq;
 				try {
-					eq = expr.calc(rs).equals(r);
+					eq = expr.calc(nums).equals(num);
 				} catch (e) {
 					continue;
 				}
 				if (eq) {
 					for (var k = 0; k < all.length; k++) {
-						if (expr.equals(all[k], nums)) {
+						if (expr.equals(all[k], perms)) {
 							continue i;
 						}
 					}
@@ -67,15 +55,8 @@
 		window.setTimeout(select);
 	}
 	
-	function valueOf(input) {
-		var value = parseInt(input.value, 10);
-		if (isNaN(value)) {
-			throw new Error('入力が不正です');
-		}
-		return value;
-	}
-	
 	var chars = [], strs = [];
+	var str;
 	function insert(row, str) {
 		var cell = row.insertCell(-1);
 		cell.appendChild($.createTextNode(str));
@@ -86,7 +67,7 @@
 		insert(row, '=').className = 'eq';
 		insert(row, e.toString(strs));
 		insert(row, '=').className = 'eq';
-		insert(row, num.toString());
+		insert(row, str);
 	}
 	
 	$.onreadystatechange = function () {
@@ -124,16 +105,6 @@
 		make.onfocus = onfocus;
 		
 		function onprepare() {
-			var o = {};
-			for (var i = 0; i < length; i++) {
-				var n = nums[i];
-				strs[i] = n < 0 ? '(' + n + ')' : n.toString();
-				if (n in o) {
-					chars[i] = o[n];
-				} else {
-					o[n] = chars[i] = (i + 10).toString(36);
-				}
-			}
 			var table = $.createElement('table');
 			div.replaceChild(table, list);
 			list = table;
@@ -156,12 +127,26 @@
 		
 		inputs.onsubmit = function () {
 			try {
-				for (var i = 0; i < length; i++) {
-					nums[i] = valueOf(uses[i]);
+				i: for (var i = 0; i < length; i++) {
+					var v = uses[i].value;
+					var ｒ = Rational.valueOf(v);
+					nums[i] = ｒ;
+					for (var j = 0; j < i; j++) {
+						if (ｒ.equals(nums[j])) {
+							perms[i] = perms[j];
+							chars[i] = chars[j];
+							strs[i] = strs[j];
+							continue i;
+						}
+					}
+					perms[i] = i;
+					chars[i] = (i + 10).toString(36);
+					strs[i] = v.charAt(0) == '-' ? '(' + v + ')' : v;
 				}
-				num = valueOf(make);
+				str = make.value;
+				num = Rational.valueOf(str);
 			} catch (e) {
-				window.alert(e.message);
+				window.alert('入力が不正です');
 				return false;
 			}
 			

@@ -19,9 +19,30 @@ var Rational = (function () {
 	Rational.Z = new Rational(0);
 	Rational.I = new Rational(1);
 	
+	Rational.valueOf = function (str) {
+		var s = str.split('/');
+		if (s.length == 2) {
+			return new Rational(parse(s[0]), parse(s[1]));
+		}
+		s = str.split('.');
+		if (s.length == 2) {
+			var l = parse('1' + s[1]);
+			if (l != 1) {
+				return new Rational(
+					parse(s[0] + s[1]),
+					Math.pow(10, Math.floor(Math.log(l) / Math.LN10)));
+			}
+		}
+		return new Rational(parse(str));
+	};
+	
 	function gcd(m, n) {
 		if (n == 0) return m;
 		return gcd(n, m % n);
+	}
+	
+	function parse(str) {
+		return parseInt(str, 10);
 	}
 	
 	prototype.negative = function () {
@@ -141,10 +162,10 @@ var Expr = (function () {
 		return value;
 	};
 	
-	prototype.equals = function (expr, nums) {
+	prototype.equals = function (expr, perms) {
 		if (expr == null || this.prd != expr.prd) return false;
 		if (this.prd == null) {
-			return nums[this.vars[0]] == nums[expr.vars[0]];
+			return perms[this.vars[0]] == perms[expr.vars[0]];
 		}
 		var l = this.vars.length, m = expr.vars.length;
 		if (l != m) return false;
@@ -160,13 +181,13 @@ var Expr = (function () {
 				var w = expr.vars[j];
 				var eq;
 				if (o == p) {
-					eq = v.equals(w, nums);
+					eq = v.equals(w, perms);
 					if (this.prd && !eq) {
-						eq = v.equals(w.negative(), nums);
+						eq = v.equals(w.negative(), perms);
 						if (eq) negative = !negative;
 					}
 				} else {
-					eq = !this.prd && v.equals(w.negative(), nums);
+					eq = !this.prd && v.equals(w.negative(), perms);
 				}
 				if (eq) {
 					seen[j] = true;
@@ -178,7 +199,7 @@ var Expr = (function () {
 		return !negative;
 	};
 	
-	prototype.strAt = function (i, op, nums) {
+	prototype.strAt = function (i, op, strs) {
 		var str;
 		if (this.getOp(i)) {
 			str = this.prd ? '÷' : '-';
@@ -188,7 +209,7 @@ var Expr = (function () {
 			str = '';
 		}
 		var v = this.vars[i];
-		var s = v.toString(nums);
+		var s = v.toString(strs);
 		return str + (v.prd == false ? '(' + s + ')' : s);
 	};
 	
