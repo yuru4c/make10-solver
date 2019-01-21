@@ -1,6 +1,7 @@
 
 (function (window, $) {
 	
+	var disabled = 'disabled';
 	var chunk = 4096;
 	
 	var num, length;
@@ -21,15 +22,15 @@
 			var ans = [];
 			i: for (; i < j && i < sl; i++) {
 				var expr = set[i];
-				var eq;
+				var value;
 				try {
-					eq = expr.calc(nums).equals(num);
+					value = expr.calc(nums);
 				} catch (e) {
 					continue;
 				}
-				if (eq) {
+				if (value.equals(num)) {
 					for (var k = 0; k < all.length; k++) {
-						if (expr.equals(all[k], perms)) {
+						if (all[k].equals(expr, perms)) {
 							continue i;
 						}
 					}
@@ -51,6 +52,14 @@
 	function onfocus() {
 		focused = this;
 		window.setTimeout(select);
+	}
+	
+	var re = /[\uff0e-\uff19]/g;
+	function f(c) {
+		return String.fromCharCode(c.charCodeAt() ^ 0xff20);
+	}
+	function valueOf(input) {
+		return Rational.valueOf(input.value.replace(re, f));
 	}
 	
 	var chars = [], strs = [];
@@ -126,41 +135,42 @@
 		inputs.onsubmit = function () {
 			var i;
 			try {
-				i: for (i = 0; i < length; i++) {
-					var r = Rational.valueOf(uses[i].value);
-					nums[i] = r;
-					for (var j = 0; j < i; j++) {
-						if (r.equals(nums[j])) {
-							perms[i] = perms[j];
-							chars[i] = chars[j];
-							strs[i] = strs[j];
-							continue i;
-						}
-					}
-					perms[i] = i;
-					chars[i] = (i + 10).toString(36);
-					strs[i] = r.toString();
+				for (i = 0; i < length; i++) {
+					nums[i] = valueOf(uses[i]);
 				}
-				num = Rational.valueOf(make.value);
-				str = num.toString();
+				num = valueOf(make);
 			} catch (e) {
 				window.alert('入力が不正です');
 				return false;
 			}
 			
-			for (i = 0; i < length; i++) {
-				uses[i].value = strs[i];
-				if (nums[i] < 0) {
-					strs[i] = '(' + strs[i] + ')';
+			var ss = [];
+			i: for (i = 0; i < length; i++) {
+				var r = nums[i];
+				for (var j = 0; j < i; j++) {
+					if (nums[j].equals(r)) {
+						perms[i] = perms[j];
+						chars[i] = chars[j];
+						strs[i] = strs[j];
+						uses[i].value = ss[j];
+						continue i;
+					}
 				}
+				perms[i] = i;
+				chars[i] = (i + 10).toString(36);
+				var s = r.toString();
+				ss[i] = s;
+				strs[i] = r < 0 ? '(' + s + ')' : s;
+				uses[i].value = s;
 			}
+			str = num.toString();
 			make.value = str;
 			
 			fieldset.disabled = true;
-			fieldset.className = 'disabled';
+			fieldset.className = disabled;
 			exec.disabled = true;
 			exec.value = '生成中...';
-			div.className = 'disabled';
+			div.className = disabled;
 			
 			solve(onprepare, onsolve);
 			return false;

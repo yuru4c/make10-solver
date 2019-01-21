@@ -25,7 +25,7 @@ var Rational = (function () {
 			return new Rational(parse(s[0]), parse(s[1]));
 		}
 		s = str.split('.');
-		if (s.length == 2) {
+		if (s.length != 1) {
 			var f = parse('1' + s[1]) / 10, d = 1;
 			while (d <= f) d *= 10;
 			var r = new Rational(parse(s[0] + s[1]), d);
