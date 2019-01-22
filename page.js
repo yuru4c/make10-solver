@@ -54,7 +54,7 @@
 		window.setTimeout(select);
 	}
 	
-	var re = /[\uff0e-\uff19]/g;
+	var re = /[\uff0d-\uff19]/g;
 	function f(c) {
 		return String.fromCharCode(c.charCodeAt() ^ 0xff20);
 	}
