@@ -182,36 +182,40 @@ var Expr = (function () {
 	};
 	
 	prototype.equals = function (expr, perms) {
-		if (expr == null || this.prd != expr.prd) return false;
+		if (expr == null || this.prd != expr.prd) {
+			return false;
+		}
 		if (this.prd == null) {
 			return perms[this.vars[0]] == perms[expr.vars[0]];
 		}
 		var l = this.vars.length, m = expr.vars.length;
 		if (l != m) return false;
 		
-		var seen = [];
 		var negative = false;
+		var seen = [];
+		seen.length = m;
+		
 		i: for (var i = 0; i < l; i++) {
 			var o = !this.getOp(i);
-			var v = this.vars[i];
+			var v = this.vars[i], n = v.negative();
+			
 			for (var j = 0; j < m; j++) {
 				if (seen[j]) continue;
-				var p = !expr.getOp(j);
 				var w = expr.vars[j];
-				var eq;
-				if (o == p) {
-					eq = v.equals(w, perms);
-					if (this.prd && !eq) {
-						eq = v.equals(w.negative(), perms);
-						if (eq) negative = !negative;
+				
+				if (!expr.getOp(j) == o) {
+					if (!w.equals(v, perms)) {
+						if (this.prd && w.equals(n, perms)) {
+							negative = !negative;
+						} else {
+							continue;
+						}
 					}
-				} else {
-					eq = !this.prd && v.equals(w.negative(), perms);
+				} else if (this.prd || !w.equals(n, perms)) {
+					continue;
 				}
-				if (eq) {
-					seen[j] = true;
-					continue i;
-				}
+				seen[j] = true;
+				continue i;
 			}
 			return false;
 		}
