@@ -192,15 +192,15 @@ var Expr = (function () {
 		if (l != m) return false;
 		
 		var negative = false;
-		var seen = [];
-		seen.length = m;
+		var seen = 0;
 		
 		i: for (var i = 0; i < l; i++) {
 			var o = !this.getOp(i);
 			var v = this.vars[i], n = v.negative();
 			
 			for (var j = 0; j < m; j++) {
-				if (seen[j]) continue;
+				var t = 1 << j;
+				if (seen & t) continue;
 				var w = expr.vars[j];
 				
 				if (!expr.getOp(j) == o) {
@@ -214,7 +214,7 @@ var Expr = (function () {
 				} else if (this.prd || !w.equals(n, perms)) {
 					continue;
 				}
-				seen[j] = true;
+				seen |= t;
 				continue i;
 			}
 			return false;
