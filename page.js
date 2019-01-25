@@ -2,46 +2,51 @@
 (function (window, $) {
 	
 	var disabled = 'disabled';
-	var chunk = 4096;
+	var chunk = 256, timeout = 1000 / 24;
 	
 	var num, length;
 	var nums = [];
 	var perms = [];
 	
 	function solve(onprepare, onsolve) {
-		var all = [], set;
+		var ans = [], set;
 		var i = 0, j = 0, sl;
 		var id;
 		window.setTimeout(function () {
 			set = exprs(length);
 			sl = set.length;
 			id = window.setInterval(calc, 1);
-			onprepare();
+			onprepare(sl);
 		});
 		function calc() {
-			var ans = [];
-			i: for (; i < j && i < sl; i++) {
-				var expr = set[i];
-				var value;
-				try {
-					value = expr.calc(nums);
-				} catch (e) {
-					continue;
-				}
-				if (value.equals(num)) {
-					for (var k = 0; k < all.length; k++) {
-						if (all[k].equals(expr, perms)) {
-							continue i;
-						}
+			var s = ans.length;
+			var end;
+			var time = +new Date() + timeout; do {
+				j += chunk;
+				end = j >= sl;
+				i: for (end && (j = sl); i < j; i++) {
+					var expr = set[i];
+					var value;
+					try {
+						value = expr.calc(nums);
+					} catch (e) {
+						continue;
 					}
-					all.push(expr);
-					ans.push(expr);
+					if (value.equals(num)) {
+						for (var k = 0; k < ans.length; k++) {
+							if (ans[k].equals(expr, perms)) {
+								continue i;
+							}
+						}
+						ans.push(expr);
+					}
 				}
-			}
-			var end = i == sl;
-			if (end) window.clearInterval(id);
-			else j += chunk;
-			onsolve(ans, all.length, i, sl, end);
+				if (end) {
+					window.clearInterval(id);
+					break;
+				}
+			} while (new Date() < time);
+			onsolve(ans, s, i, sl, end);
 		}
 	}
 	
@@ -60,6 +65,10 @@
 	}
 	function valueOf(input) {
 		return Rational.valueOf(input.value.replace(re, f));
+	}
+	
+	function progress(i, l) {
+		return '計算中 (' + i + ' / ' + l + ')';
 	}
 	
 	var chars = [], strs = [];
@@ -111,15 +120,17 @@
 		}
 		make.onfocus = onfocus;
 		
-		function onprepare() {
+		function onprepare(sl) {
 			var table = $.createElement('table');
 			div.replaceChild(table, list);
 			list = table;
+			exec.value = progress(0, sl);
 		}
-		function onsolve(ans, c, j, sl, end) {
+		function onsolve(ans, s, i, sl, end) {
+			var c = ans.length;
 			count.data = c;
-			for (var i = 0; i < ans.length; i++) {
-				write(list.insertRow(-1), ans[i]);
+			for (var t = s; t < c; t++) {
+				write(list.insertRow(-1), ans[t]);
 			}
 			if (end) {
 				fieldset.disabled = false;
@@ -128,7 +139,7 @@
 				exec.value = '実行';
 				div.className = '';
 			} else {
-				exec.value = '計算中 (' + j + ' / ' + sl + ')';
+				exec.value = progress(i, sl);
 			}
 		}
 		
