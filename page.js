@@ -124,6 +124,7 @@
 			var table = $.createElement('table');
 			div.replaceChild(table, list);
 			list = table;
+			count.data = 0;
 			exec.value = progress(0, sl);
 		}
 		function onsolve(ans, s, i, sl, end) {
