@@ -191,12 +191,15 @@ var Expr = (function () {
 		var l = this.vars.length, m = expr.vars.length;
 		if (l != m) return false;
 		
-		var negative = false;
+		var positive = true, not0 = true;
 		var seen = 0;
 		
 		i: for (var i = 0; i < l; i++) {
 			var o = !this.getOp(i);
 			var v = this.vars[i], n = v.negative();
+			if (this.prd && not0) {
+				not0 = !v.equals(n, perms);
+			}
 			
 			for (var j = 0; j < m; j++) {
 				var t = 1 << j;
@@ -206,7 +209,7 @@ var Expr = (function () {
 				if (!expr.getOp(j) == o) {
 					if (!w.equals(v, perms)) {
 						if (this.prd && w.equals(n, perms)) {
-							negative = !negative;
+							if (not0) positive = !positive;
 						} else {
 							continue;
 						}
@@ -219,7 +222,7 @@ var Expr = (function () {
 			}
 			return false;
 		}
-		return !negative;
+		return positive || !not0;
 	};
 	
 	prototype.strAt = function (i, op, strs) {
