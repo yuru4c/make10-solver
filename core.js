@@ -2,12 +2,12 @@
 var Rational = (function () {
 	
 	function Rational(n, d) {
-		if (1 in arguments) {
+		if (arguments.length == 1) {
+			d = 1;
+		} else {
 			if (d == 0) {
 				throw new Error();
 			}
-		} else {
-			d = 1;
 		}
 		
 		var divisor = gcd(n, d);
@@ -102,12 +102,12 @@ var Rational = (function () {
 var Expr = (function () {
 	
 	function Expr(vars, prd, ops) {
-		if (arguments.length == 3) {
+		if (arguments.length == 1) {
+			this.i = vars;
+		} else {
 			this.vars = vars;
 			this.prd = prd;
 			this.ops = ops;
-		} else {
-			this.i = vars;
 		}
 	}
 	var prototype = Expr.prototype;
