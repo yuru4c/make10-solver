@@ -101,33 +101,30 @@ var Rational = (function () {
 
 var Expr = (function () {
 	
-	function Expr(prd, ops, vars) {
-		this.vars = [];
-		this.prd = prd;
-		this.ops = ops;
-		
-		if (arguments.length) {
-			if (vars) {
-				for (var i = 0; i < vars.length; i++) {
-					this.vars[i] = vars[i];
-				}
-			}
+	function Expr(vars, prd, ops) {
+		if (arguments.length == 3) {
+			this.vars = vars;
+			this.prd = prd;
+			this.ops = ops;
 		} else {
-			this.vars[0] = 0;
+			this.i = vars;
 		}
 	}
 	var prototype = Expr.prototype;
 	
+	prototype.vars = null;
+	prototype.prd = null;
+	
 	prototype.assign = function (perms, start) {
-		var expr = new Expr(this.prd, this.ops);
-		if (this.prd == null) {
-			expr.vars[0] = perms[start + this.vars[0]];
-			return expr;
+		if (!this.vars) {
+			return new Expr(perms[start + this.i]);
 		}
-		for (var i = 0; i < this.vars.length; i++) {
-			expr.vars[i] = this.vars[i].assign(perms, start);
+		var vars = [];
+		vars.length = this.vars.length;
+		for (var i = 0; i < vars.length; i++) {
+			vars[i] = this.vars[i].assign(perms, start);
 		}
-		return expr;
+		return new Expr(vars, this.prd, this.ops);
 	};
 	
 	prototype.getOp = function (index) {
@@ -143,17 +140,23 @@ var Expr = (function () {
 	};
 	
 	prototype.negative = function () {
-		if (this.prd == null) return null;
+		if (!this.vars) return null;
 		if (!this.prd && this.ops) {
-			return new Expr(false, ~this.ops, this.vars);
+			return new Expr(this.vars, false, ~this.ops);
 		}
 		for (var i = this.vars.length - 1; i >= 0; i--) {
 			var n = this.vars[i].negative();
 			if (n) {
-				var expr = new Expr(this.prd, this.ops, this.vars);
-				expr.vars[i] = n;
-				if (this.prd) return expr;
-				expr.ops = ~0;
+				var vars = [];
+				vars.length = this.vars.length;
+				for (var j = 0; j < vars.length; j++) {
+					vars[j] = this.vars[j];
+				}
+				vars[i] = n;
+				if (this.prd) {
+					return new Expr(vars, true, this.ops);
+				}
+				var expr = new Expr(vars, false, ~0);
 				expr.setOp(i, false);
 				return expr;
 			}
@@ -162,8 +165,8 @@ var Expr = (function () {
 	};
 	
 	prototype.calc = function (rationals) {
-		if (this.prd == null) {
-			return rationals[this.vars[0]];
+		if (!this.vars) {
+			return rationals[this.i];
 		}
 		var value = this.prd ? Rational.I : Rational.Z;
 		for (var i = 0; i < this.vars.length; i++) {
@@ -185,8 +188,8 @@ var Expr = (function () {
 		if (expr == null || this.prd != expr.prd) {
 			return false;
 		}
-		if (this.prd == null) {
-			return perms[this.vars[0]] == perms[expr.vars[0]];
+		if (!this.vars) {
+			return perms[this.i] == perms[expr.i];
 		}
 		var l = this.vars.length, m = expr.vars.length;
 		if (l != m) return false;
@@ -240,12 +243,11 @@ var Expr = (function () {
 	};
 	
 	prototype.toString = function (strs) {
-		if (this.prd == null) {
-			var v = this.vars[0];
+		if (!this.vars) {
 			/* if (!strs) {
-				return (v + 10).toString(36);
+				return (this.i + 10).toString(36);
 			} */
-			return strs[v];
+			return strs[this.i];
 		}
 		var i = 0, l = this.vars.length;
 		if (this.getOp(0)) {
@@ -267,9 +269,11 @@ var Expr = (function () {
 
 var exprs = (function () {
 	
-	var Sum  = [null, [new Expr()]];
-	var Prd  = [null, [new Expr()]];
-	var Sets = [null, [new Expr()]];
+	var expr = [new Expr(0)];
+	
+	var Sum  = [null, expr];
+	var Prd  = [null, expr];
+	var Sets = [null, expr];
 	
 	var i = 2;
 	var index = [0];
@@ -288,33 +292,53 @@ var exprs = (function () {
 		return negative;
 	}
 	
-	function ops(set, prd, ol) {
+	function ops(set, r, prd, ol) {
+		var vars = [];
+		vars.length = r;
+		for (var i = 0; i < r; i++) {
+			vars[i] = stack[i];
+		}
 		for (var o = 0; o < ol; o++) {
-			set.push(new Expr(prd, o, stack));
+			set.push(new Expr(vars, prd, o));
 		}
 	}
 	
-	function iterate(n, r, m, s, sets) {
+	function iterate(n, r, s, prd, set) {
 		if (s == r) {
-			switch (sets) {
-				case Prd: ops(Sum[n], false, 1 << r - 1);
-				break;
-				case Sum: ops(Prd[n], true, (1 << r) - 1);
-				break;
+			if (prd) {
+				ops(Prd[n], r, true, (1 << r) - 1);
+			} else {
+				ops(Sum[n], r, false, 1 << r - 1);
 			}
 			return;
 		}
-		var l = index[s];
-		var exprs = sets[l];
+		var exprs = set[s];
 		for (var i = 0; i < exprs.length; i++) {
-			stack[s] = exprs[i].assign(perms, m);
-			iterate(n, r, m + l, s + 1, sets);
+			stack[s] = exprs[i];
+			iterate(n, r, s + 1, prd, set);
 		}
 	}
 	
+	function dp(set, r) {
+		var assigned = [];
+		assigned.length = r;
+		for (var i = 0, m = 0; i < r; i++) {
+			var l = index[i];
+			var exprs = set[l];
+			var a = [];
+			a.length = exprs.length;
+			for (var j = 0; j < a.length; j++) {
+				a[j] = exprs[j].assign(perms, m);
+			}
+			assigned[i] = a;
+			m += l;
+		}
+		return assigned;
+	}
+	
 	function assign(n, r) {
-		iterate(n, r, 0, 0, Prd);
-		iterate(n, r, 0, 0, Sum);
+		iterate(n, r, 0, false, dp(Prd, r));
+		iterate(n, r, 0, true,  dp(Sum, r));
 	}
 	
 	function combl(n, r, m, s, min, l, t, j) {
